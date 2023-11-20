@@ -1,11 +1,9 @@
 #include <iostream>
 using namespace std;
 #include <vector>
-#include <list>
 #include <algorithm>
 #include <string>
 #include <bits/stdc++.h>
-
 
 int gcd(int a, int b) {
     while (b != 0) {
@@ -32,7 +30,6 @@ public:
         } 
     } 
   
-    // Find function 
     int find(int i) 
     { 
         if (parent[i] == -1) 
@@ -41,7 +38,6 @@ public:
         return parent[i] = find(parent[i]); 
     } 
   
-    // Union function 
     void unite(int x, int y) 
     { 
         int s1 = find(x); 
@@ -62,19 +58,19 @@ public:
     } 
 };
 
-bool compareGain(const vector<int>& a, const vector<int>& b) {
+bool compareGain(const vector<double>& a, const vector<double>& b) {
     return a[2] > b[2]; //decreasing order
 }
 
-bool compareWeight(const vector<int>& a, const vector<int>& b) {
+bool compareWeight(const vector<double>& a, const vector<double>& b) {
     return a[3] < b[3];
 }
 
-bool compareDiff(const vector<int>& a, const vector<int>& b) {
+bool compareDiff(const vector<double>& a, const vector<double>& b) {
     return a[4] > b[4];
 }
 
-vector<int> kruskal(vector<vector<int>> lista, int N, int M, string str) { 
+vector<int> kruskal(vector<vector<double>> lista, int N, int M, string str) { 
     DSU s(N);
 
 
@@ -117,15 +113,15 @@ vector<int> kruskal(vector<vector<int>> lista, int N, int M, string str) {
 
 int main() {
     int N, M;
-    int d = 0;
+    double d = 0;
     int c = 1;
     cin >> N >> M;
-    vector<vector<int>> listOfedges;
+    vector<vector<double>> listOfedges;
     
     for (int i=0; i<M; i++)  {
-        vector<int> edge;
+        vector<double> edge;
         // int source = 0;
-        int source, destination, gain, weight;
+        double source, destination, gain, weight;
         // int destination = 0;
         // int gain = 0;
         // int weight = 0;
@@ -139,7 +135,7 @@ int main() {
     vector<int> res2 = kruskal(listOfedges, N, M, "compareWeight");
     int min_weight = res2[1];
     double c_max = (double)max_gain/min_weight;
-    double c_min = 0;
+    double c_min = 1;
     
     //binary search for c. ce[cmin, cmax]
     double l = c_min;
@@ -148,16 +144,11 @@ int main() {
     
     vector<int> greedy;
 
-
-
-    while(r-l >= 0.01) {
+    while(r-l >= 0.0001) {
         for (int i=0; i<M; i++) {
             listOfedges[i][4] = listOfedges[i][2]-(mid*listOfedges[i][3]);
         }
         greedy = kruskal(listOfedges, N, M, "compareDiff"); //greedy criterion, max diff.
-        for (int i=0; i<M; i++) {
-            listOfedges[i][4] = listOfedges[i][2]-(mid*listOfedges[i][3]);
-        }
         int diff = greedy[0] - (mid * greedy[1]);
         if (diff >= 0) {
             l = mid;
@@ -167,6 +158,6 @@ int main() {
         }
         mid = (l+r)/2;
     }
-    cout << greedy[0]/greedy[2] << " " << greedy[1]/greedy[2] << endl;
+    cout << (int)greedy[0]/greedy[2] << " " << (int)greedy[1]/greedy[2] << endl;
     return 0;
 }
