@@ -1,9 +1,8 @@
 #include <iostream>
-using namespace std;
 #include <vector>
 #include <algorithm>
 #include <string>
-#include <bits/stdc++.h>
+using namespace std;
 
 int gcd(int a, int b) {
     while (b != 0) {
@@ -120,11 +119,7 @@ int main() {
     
     for (int i=0; i<M; i++)  {
         vector<double> edge;
-        // int source = 0;
         double source, destination, gain, weight;
-        // int destination = 0;
-        // int gain = 0;
-        // int weight = 0;
         cin >> source >> destination >> gain >> weight;
         listOfedges.push_back({source, destination, gain, weight, d}); //diff = p-c*w
     }
