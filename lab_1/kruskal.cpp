@@ -3,11 +3,8 @@ using namespace std;
 #include <vector>
 #include <list>
 #include <algorithm>
-
-// const int MAX = 1e6-1;
-// int root[MAX];
-// const int nodes = 4, edges = 5;
-// pair <pair<int, int>, pair<int, int> > p[MAX];
+#include <string>
+#include <bits/stdc++.h>
 
 
 int gcd(int a, int b) {
@@ -19,22 +16,51 @@ int gcd(int a, int b) {
     return a;
 }
 
-int parent(int a)  //find the parent of the given node
-{
-    while(root[a] != a) //
-    {
-        root[a] = root[root[a]];
-        a = root[a];
-    }
-    return a;
-}
-
-void union_find(int a, int b)  //check if the given two vertices are in the same “union” or not
-{
-    int d = parent(a);
-    int e = parent(b);
-    root[d] = root[e];
-}
+class DSU { 
+    int* parent; 
+    int* rank; 
+  
+public: 
+    DSU(int n) 
+    { 
+        parent = new int[n]; 
+        rank = new int[n]; 
+  
+        for (int i = 0; i < n; i++) { 
+            parent[i] = -1; 
+            rank[i] = 1; 
+        } 
+    } 
+  
+    // Find function 
+    int find(int i) 
+    { 
+        if (parent[i] == -1) 
+            return i; 
+  
+        return parent[i] = find(parent[i]); 
+    } 
+  
+    // Union function 
+    void unite(int x, int y) 
+    { 
+        int s1 = find(x); 
+        int s2 = find(y); 
+  
+        if (s1 != s2) { 
+            if (rank[s1] < rank[s2]) { 
+                parent[s1] = s2; 
+            } 
+            else if (rank[s1] > rank[s2]) { 
+                parent[s2] = s1; 
+            } 
+            else { 
+                parent[s2] = s1; 
+                rank[s1] += 1; 
+            } 
+        } 
+    } 
+};
 
 bool compareGain(const vector<int>& a, const vector<int>& b) {
     return a[2] > b[2]; //decreasing order
@@ -48,33 +74,34 @@ bool compareDiff(const vector<int>& a, const vector<int>& b) {
     return a[4] > b[4];
 }
 
-vector<int> kruskal(vector<vector<int>> lista, char *string) { 
-    if (string== "compareGain") {
+vector<int> kruskal(vector<vector<int>> lista, int N, int M, string str) { 
+    DSU s(N);
+
+
+    if (str == "compareGain") {
         sort(lista.begin(), lista.end(), compareGain);
     }
 
-    if (string== "compareWeight") {
+    if (str == "compareWeight") {
         sort(lista.begin(), lista.end(), compareWeight);
     }
 
-    if (string== "compareDiff") {
+    if (str == "compareDiff") {
         sort(lista.begin(), lista.end(), compareDiff);
     }
+    
 
-    weight = 0, gain = 0;
     int sum_p = 0, sum_w = 0;
-
     size_t length = lista.size();
-    for(int i = 0 ; i < length ; ++i) { //gia kathe grammi, gia kathe pragma tis listas diladi.
+    for(int i = 0 ; i < M ; ++i) { //gia kathe grammi, gia kathe pragma tis listas diladi.
         int u = lista[i][0];
         int v = lista[i][1];
         int gain = lista[i][2];
         int weight = lista[i][3];
-        if(parent(u) != parent(v)) //only select edge if it does not create a cycle (ie the two nodes forming it have different root nodes)
-        {
+        if(s.find(u) != s.find(v)) {
             sum_p += gain;
             sum_w += weight;
-            union_find(u, v);   //ένωσε τις 2 ακμές
+            s.unite(u, v);   //ένωσε τις 2 ακμές
         }
     }
 
@@ -89,70 +116,57 @@ vector<int> kruskal(vector<vector<int>> lista, char *string) {
 }
 
 int main() {
-
     int N, M;
-    int diff = 0;
+    int d = 0;
     int c = 1;
     cin >> N >> M;
     vector<vector<int>> listOfedges;
     
     for (int i=0; i<M; i++)  {
         vector<int> edge;
-        int source = 0;
-        int destination = 0;
-        int gain = 0;
-        int weight = 0;
+        // int source = 0;
+        int source, destination, gain, weight;
+        // int destination = 0;
+        // int gain = 0;
+        // int weight = 0;
         cin >> source >> destination >> gain >> weight;
-        listOfedges.push_back({source, destination, gain, weight, diff});
+        listOfedges.push_back({source, destination, gain, weight, d}); //diff = p-c*w
     }
+    
+    vector<int> res = kruskal(listOfedges, N, M, "compareGain");
+    int max_gain = res[0];
 
-    for (int i=0; i<M; i++){
-        cout << listOfedges[i][0] << endl ;
+    vector<int> res2 = kruskal(listOfedges, N, M, "compareWeight");
+    int min_weight = res2[1];
+    double c_max = (double)max_gain/min_weight;
+    double c_min = 0;
+    
+    //binary search for c. ce[cmin, cmax]
+    double l = c_min;
+    double r = c_max;
+    double mid = (l+r)/2;
+    
+    vector<int> greedy;
+
+
+
+    while(r-l >= 0.01) {
+        for (int i=0; i<M; i++) {
+            listOfedges[i][4] = listOfedges[i][2]-(mid*listOfedges[i][3]);
+        }
+        greedy = kruskal(listOfedges, N, M, "compareDiff"); //greedy criterion, max diff.
+        for (int i=0; i<M; i++) {
+            listOfedges[i][4] = listOfedges[i][2]-(mid*listOfedges[i][3]);
+        }
+        int diff = greedy[0] - (mid * greedy[1]);
+        if (diff >= 0) {
+            l = mid;
+        }
+        else {
+            r = mid;
+        }
+        mid = (l+r)/2;
     }
-
-
-
-    // for(int i=0; i<M; i++) { 
-    //
-    //     vector<int> edge {u, v, p, w, diff};
-    //     for (int j=0; j<4; j++) {
-    //         int input;
-    //         cin >> input;
-    //         edge.push_back(input);
-    //     }
-    //     // diff = p - c*w;
-    //     edge.push_back(diff);
-    //     
-    //     listOfedges.push_back(edge);
-    // }
-
-    // for(const auto& row: listOfedges) {
-    //     for (const auto& element: row) {
-    //         cout << element << ",";
-    //     }
-    //     cout << endl;
-    // }
-
-    // for(int i = 0;i < MAX;++i)    //initialize the array groups
-    // {
-    //     root[i] = i;
-    // }
-
-    // p[0] = make_pair(make_pair(1, 2), make_pair(1, 3));  // weight = 3, gain = 1
-    // p[1] = make_pair(make_pair(2, 3), make_pair(2, 2));  // weight = 2, gain = 2
-    // p[2] = make_pair(make_pair(3, 1), make_pair(3, 1));  // weight = 1, gain = 3
-    // p[3] = make_pair(make_pair(21, 10), make_pair(0, 2)); // weight = 21, gain = 10
-    // p[4] = make_pair(make_pair(22, 11), make_pair(1, 3)); // weight = 22, gain = 11
-
-    // sort(p, p + edges, [](const auto &lhs, const auto &rhs) {
-    //     return lhs.first.second / lhs.first.first > rhs.first.second / rhs.first.first;
-    // });
-    //
-    //
-    // maxRatio = kruskal();
-    // cout << "Minimum cost is: "<< maxRatio << endl;
-
-    // vector<int> res = kruskal(listOfedges);
-    // cout << res << endl;
+    cout << greedy[0]/greedy[2] << " " << greedy[1]/greedy[2] << endl;
     return 0;
 }
