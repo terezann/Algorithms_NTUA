@@ -130,7 +130,7 @@ int main() {
     vector<int> res2 = kruskal(listOfedges, N, M, "compareWeight");
     int min_weight = res2[1];
     double c_max = (double)max_gain/min_weight;
-    double c_min = 1;
+    double c_min = 0;
     
     //binary search for c. ce[cmin, cmax]
     double l = c_min;
